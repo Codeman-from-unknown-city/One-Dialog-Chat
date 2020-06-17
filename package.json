@@ -1,0 +1,29 @@
+{
+  "name": "chat",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Codeman-from-unknown-city/One-Dialog-Chat.git"
+  },
+  "keywords": [
+    "chat",
+    "nodejs",
+    "js",
+    "fullstack"
+  ],
+  "author": "Sergei Truschev",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Codeman-from-unknown-city/One-Dialog-Chat/issues"
+  },
+  "homepage": "https://github.com/Codeman-from-unknown-city/One-Dialog-Chat#readme",
+  "dependencies": {
+    "ws": "^7.3.0"
+  }
+}
