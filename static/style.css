@@ -43,6 +43,7 @@ button {
     width: 70%;
 }
 .login-button {
+    padding: 2.3px 0 1px 0;
     height: 30px;
     width: 20%;
     background-color: #ffffff;
@@ -126,16 +127,22 @@ button {
     padding: 22px 0;
     border-top: 1px solid #00000054;
 }
+.messages-wrap {
+    height: 75vh;
+    overflow: auto;
+}
 .messages {
     display: flex;
     flex-direction: column;
-    justify-content: flex-end;
     align-items: flex-start;
-    padding-left: 12%;
-    height: 75vh;
+    padding: 0 12% 0 12%;
+    height: 100%;
 }
 .message {
     padding-bottom: 10px;
+    max-width: 90%;
+    text-align: initial;
+    word-break: break-all;
 }
 .send-input {
     margin-right: 20px;
@@ -149,7 +156,7 @@ button {
     position: absolute;
     text-align: center;
     left: 0;
-    height: 100vw;
+    height: 100vh;
     width: 20%;
     font-size: 20px;
     color: #ffffff;
@@ -161,4 +168,7 @@ button {
 .back > span {
     display: block;
     margin-top: 100%;
+}
+.out {
+    margin: auto;
 }

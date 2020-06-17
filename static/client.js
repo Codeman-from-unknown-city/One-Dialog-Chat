@@ -143,7 +143,9 @@ function dialogInterface(ws, name, thisUserName) {
     const turnBack = createNode('div', 'back', null, 'click', leaveDialog);
     turnBack.append(createNode('span', null, '&larr; Вернуться назад'));
 
+    const messagesWrap = createNode('div', 'messages-wrap');
     const messages = createNode('div', 'messages');
+    messagesWrap.append(messages);
     const nameToSend = createNode('span', 'name-interlocutor', nameInterlocutor);
 
     const sendMessage = (event) => {
@@ -161,7 +163,7 @@ function dialogInterface(ws, name, thisUserName) {
     const sendButton = createNode('i', 'fas fa-paper-plane', null, 'click', sendMessage);
     multiAppend(formWrap, form, input, sendButton);
 
-    multiAppend(dialogWrap, nameToSend, messages, formWrap);
+    multiAppend(dialogWrap, nameToSend, messagesWrap, formWrap);
     multiAppend(APP, turnBack, dialogWrap)
 
     ws.onmessage = message => {
@@ -170,7 +172,7 @@ function dialogInterface(ws, name, thisUserName) {
         if (data.type === 'message') messages.append(createNode('span', 'message', `${nameInterlocutor}: ${data.message}`));
         if (data.type === 'out') {
             messages.innerHTML = '';
-            messages.append(createNode('span', 'message', `Ваш собеседник ${nameInterlocutor} вышел из диалога.`));
+            messages.append(createNode('span', 'out', `Ваш собеседник ${nameInterlocutor} вышел из диалога.`));
             input.disabled = true;
         }
         if (data.type === 'invite') ws.send(JSON.stringify({ type: 'responseToInvitation', response: 'inChat', toId: data.fromId, receiverName: thisUserName }));
