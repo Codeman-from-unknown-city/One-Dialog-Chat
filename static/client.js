@@ -120,7 +120,7 @@ function chat(event, name) {
         }
     }
 
-    const ws = new WebSocket('ws://localhost:8000/');
+    const ws = new WebSocket('wss://one-dialoag-chat.herokuapp.com/');
 
     ws.onopen = () => ws.send(JSON.stringify({type: 'userName', name: userName}));
 
