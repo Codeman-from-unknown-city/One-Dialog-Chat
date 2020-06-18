@@ -1,3 +1,5 @@
+'use strict';
+
 const fs = require('fs');
 const http = require('http');
 const WebSocket = require('ws');
@@ -5,7 +7,7 @@ const PORT = process.env.PORT || 8000;
 
 const routing = {
     '/': fs.readFileSync('./static/index.html', 'utf-8'),
-    '/client.js': fs.readFileSync('./static/client.js', 'utf-8'),
+    '/client.min.js': fs.readFileSync('./static/client.min.js', 'utf-8'),
     '/style.css': fs.readFileSync('./static/style.css', 'utf-8'),
     '/favicon.ico': fs.readFileSync('./static/favicon.ico'),
 };

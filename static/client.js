@@ -1,3 +1,5 @@
+'use strict';
+
 const APP = document.getElementById('app');
 
 function debounse(fn, ms) {
