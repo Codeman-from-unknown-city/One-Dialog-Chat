@@ -1,6 +1,7 @@
 const fs = require('fs');
 const http = require('http');
 const WebSocket = require('ws');
+const PORT = process.env.PORT || 8000;
 
 const routing = {
     '/': fs.readFileSync('./static/index.html', 'utf-8'),
@@ -11,7 +12,6 @@ const routing = {
 
 const setContentType = (res, url) => {
     let ext = url.split('.')[1];   
-    console.log(ext)
     if (ext === 'css' || ext === 'html') res.setHeader('Content-Type', `text/${ext}`);
     if (ext === 'ico') res.setHeader('Content-Type', 'image/x-icon');
     if (ext === 'js') res.setHeader('Content-Type', 'text/javascript');
@@ -25,7 +25,7 @@ const server = http.createServer(function(req, res) {
     res.end(file);
 });
 
-server.listen(8000);
+server.listen(PORT);
 
 const ws = new WebSocket.Server({
     server,
@@ -55,7 +55,6 @@ function chatLogic(socket) {
     let collocutor;
     socket.on('message', jsonMessage => {
         const data = JSON.parse(jsonMessage);
-        console.log(data);
         switch(data.type) {
             case 'userName':
                 users.push({name: data.name, socket, id: Date.now()});

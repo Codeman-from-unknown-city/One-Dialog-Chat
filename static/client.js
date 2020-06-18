@@ -45,6 +45,8 @@ const multiAppend = (parent, ...childs) => childs.forEach(child => parent.append
 function chat(event, name) {
     event.preventDefault();
 
+    let usersOnline;
+
     const userName = name ? name : document.querySelector('.login-input').value;
     APP.innerHTML = '';
     const invites = createNode('div', 'invites');
@@ -73,8 +75,25 @@ function chat(event, name) {
         usersList.innerHTML = '';
         if (onlineUsers.length) {
             usersList.insertAdjacentHTML('afterbegin', '<h1>Пользователи онлайн:</h1>');
+            const search = createNode('input', 'search', null, 'input', searchUsers);
+            search.setAttribute('placeholder', 'Напишите имя пользователя, которого ищете...');
+            usersList.append(search);
             onlineUsers.forEach(addUser);
         } else usersList.insertAdjacentHTML('afterbegin', '<h1>Нет пользователей онлайн</h1>');
+    }
+
+    function searchUsers(event) {
+        if (event.target.value.trim() === '') {
+            showOnlineUsers(usersOnline);
+            return;
+        }
+
+        const filterList = usersOnline.filter(user => user.name.indexOf(event.target.value) !== -1);
+        if (filterList) {
+            document.querySelectorAll('.user').forEach(li => li.remove());
+            filterList.forEach(addUser);
+        }
+        else return;
     }
 
     function showNotification(sentence, isInvite, fromWhomId) {
@@ -107,11 +126,11 @@ function chat(event, name) {
 
     ws.onmessage = message => {
         const data = JSON.parse(message.data);
-        console.log(data)
         
         switch(data.type) {
             case 'usersList': 
-                showOnlineUsers(data.names);
+                usersOnline = data.names;
+                showOnlineUsers(usersOnline);
                 break;
             
             case 'invite':
@@ -167,7 +186,6 @@ function dialogInterface(ws, name, thisUserName) {
     multiAppend(APP, turnBack, dialogWrap)
 
     ws.onmessage = message => {
-        console.log(message.data);
         const data = JSON.parse(message.data);
         if (data.type === 'message') messages.append(createNode('span', 'message', `${nameInterlocutor}: ${data.message}`));
         if (data.type === 'out') {

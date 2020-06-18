@@ -63,6 +63,9 @@ button {
     text-align: center;
     color: #ffffff;
 }
+.search {
+    width: 98%;
+}
 .user {
     display: flex;
     align-items: center;
@@ -84,6 +87,7 @@ button {
     text-align: center;
     flex-direction: column;
     margin: 5px 5px 20px 5px;
+    padding-top: 10px;
     padding-bottom: 5px;
     color: #000000bf;
     border: 1px solid #00000052;
