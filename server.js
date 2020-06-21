@@ -13,7 +13,7 @@ const routing = {
 };
 
 const setContentType = (res, url) => {
-    let ext = url.split('.')[1];   
+    let ext = url.split('.')[-1];   
     if (ext === 'css' || ext === 'html') res.setHeader('Content-Type', `text/${ext}`);
     if (ext === 'ico') res.setHeader('Content-Type', 'image/x-icon');
     if (ext === 'js') res.setHeader('Content-Type', 'text/javascript');

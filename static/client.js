@@ -49,7 +49,21 @@ function chat(event, name) {
 
     let usersOnline;
 
-    const userName = name ? name : document.querySelector('.login-input').value;
+    let loginInput = document.querySelector('.login-input');
+    const userName = name ? name : loginInput.value;
+
+    if (userName === '') {
+        alert('Вы не ввели свой логин');
+        loginInput.value = '';
+        return; 
+    }
+
+    if (userName.length > 25) {
+        alert('Ваше имя не должно превышать 25 символов');
+        loginInput.value = '';
+        return; 
+    }
+    
     APP.innerHTML = '';
     const invites = createNode('div', 'invites');
     invites.insertAdjacentHTML('afterbegin', '<h1>Приглашения:</h1>');
@@ -177,6 +191,8 @@ function dialogInterface(ws, name, thisUserName) {
             input.value = '';
         }
     };
+
+    document.addEventListener('keydown', event => event.code === 'Enter' ? sendMessage(event) : null);
 
     const formWrap = createNode('div', 'form-wrap');
     const form = createNode('form', 'send-form');
