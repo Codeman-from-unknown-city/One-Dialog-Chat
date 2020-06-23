@@ -5,29 +5,33 @@ const http = require('http');
 const WebSocket = require('ws');
 const PORT = process.env.PORT || 80;
 
-const routing = {
-    '/': fs.readFileSync('./static/index.html', 'utf-8'),
-    '/client.min.js': fs.readFileSync('./static/client.min.js', 'utf-8'),
-    '/style.css': fs.readFileSync('./static/style.css', 'utf-8'),
-    '/favicon.ico': fs.readFileSync('./static/favicon.ico'),
-};
-
-const setContentType = (res, url) => {
-    let ext = url.split('.')[-1];   
-    if (ext === 'css' || ext === 'html') res.setHeader('Content-Type', `text/${ext}`);
-    if (ext === 'ico') res.setHeader('Content-Type', 'image/x-icon');
-    if (ext === 'js') res.setHeader('Content-Type', 'text/javascript');
+function setContentType(url) {
+    let fileNameParts = url.split('.');
+    let ext = fileNameParts[fileNameParts.length - 1];
+    if (ext === 'css' || ext === 'html') return `text/${ext}`;
+    if (ext === 'ico') return 'image/x-icon';
+    if (ext === 'js') return 'text/javascript';
 }
 
-const server = http.createServer(function(req, res) {
-    if (req.url === '/') res.setHeader('Content-Type', 'text/html');
-    else setContentType(res, req.url);
-    const file = routing[req.url];
-    res.writeHead('200');
-    res.end(file);
-});
+const server = http.createServer((req, res) => {
+    const fsCallback = (err, data) => {
+        if (err) throw err;
+        res.end(data);
+    }
 
-server.listen(PORT);
+    if (req.url === '/') {
+        res.writeHead(200, 'OK', {'Content-Type': 'text/html'});
+        fs.readFile('./static/index.html', 'utf-8', fsCallback);
+    }
+    else if (req.url === '/favicon.ico') {
+        res.writeHead(200, 'OK', {'Content-Type': setContentType(req.url)});
+        fs.readFile(`./static${req.url}`, fsCallback);
+    }
+    else {
+        res.writeHead(200, 'OK', {'Content-Type': setContentType(req.url)});
+        fs.readFile(`./static${req.url}`, 'utf-8', fsCallback);
+    }
+}).listen(PORT);
 
 const ws = new WebSocket.Server({
     server,
