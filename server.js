@@ -3,7 +3,7 @@
 const fs = require('fs');
 const http = require('http');
 const WebSocket = require('ws');
-const PORT = process.env.PORT || 8000;
+const PORT = process.env.PORT || 80;
 
 const routing = {
     '/': fs.readFileSync('./static/index.html', 'utf-8'),
