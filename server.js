@@ -5,6 +5,13 @@ const http = require('http');
 const WebSocket = require('ws');
 const PORT = process.env.PORT || 80;
 
+const routing = {
+    '/': res => fs.readFile('./static/index.html', 'utf-8', (err, data) => (
+        res.writeHead(200, 'OK', {'Content-Type': 'text/html'}), 
+        res.end(data, 'utf-8')
+        )),
+}
+
 function setContentType(url) {
     let fileNameParts = url.split('.');
     let ext = fileNameParts[fileNameParts.length - 1];
@@ -24,13 +31,9 @@ const server = http.createServer((req, res) => {
         }
     }
 
-    if (req.url === '/') {
-        res.writeHead(200, 'OK', {'Content-Type': 'text/html'});
-        fs.readFile('./static/index.html', 'utf-8', (err, data) => res.end(data, 'utf-8'));
-    }
-    else {
-        fs.readFile(`./static${req.url}`, 'utf-8', fsCallback);
-    }
+    if (routing[req.url]) routing[req.url](res);
+    else fs.readFile(`./static${req.url}`, 'utf-8', fsCallback);
+    
 }).listen(PORT);
 
 server.on('clientError', (err, socket) => {
