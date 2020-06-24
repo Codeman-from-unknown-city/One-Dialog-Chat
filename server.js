@@ -9,29 +9,34 @@ function setContentType(url) {
     let fileNameParts = url.split('.');
     let ext = fileNameParts[fileNameParts.length - 1];
     if (ext === 'css' || ext === 'html') return `text/${ext}`;
-    if (ext === 'ico') return 'image/x-icon';
+    if (ext === 'ico' || ext === 'png') return 'image/x-icon';
     if (ext === 'js') return 'text/javascript';
 }
 
 const server = http.createServer((req, res) => {
     const fsCallback = (err, data) => {
-        if (err) throw err;
-        res.end(data);
+        try {
+            if (err) throw err;
+            res.writeHead(200, 'OK', {'Content-Type': setContentType(req.url)});
+            res.end(data, 'utf-8');
+        } catch(err) {
+            res.end('HTTP/1.1 404 Page Not Found\r\n\r\n');
+        }
     }
 
     if (req.url === '/') {
         res.writeHead(200, 'OK', {'Content-Type': 'text/html'});
-        fs.readFile('./static/index.html', 'utf-8', fsCallback);
-    }
-    else if (req.url === '/favicon.ico') {
-        res.writeHead(200, 'OK', {'Content-Type': setContentType(req.url)});
-        fs.readFile(`./static${req.url}`, fsCallback);
+        fs.readFile('./static/index.html', 'utf-8', (err, data) => res.end(data, 'utf-8'));
     }
     else {
-        res.writeHead(200, 'OK', {'Content-Type': setContentType(req.url)});
         fs.readFile(`./static${req.url}`, 'utf-8', fsCallback);
     }
 }).listen(PORT);
+
+server.on('clientError', (err, socket) => {
+    if (err.code === 'ECONNRESET' || !socket.writable) return;
+    socket.end('HTTP/1.1 400 Bad Request\r\n\r\n');
+});
 
 const ws = new WebSocket.Server({
     server,
