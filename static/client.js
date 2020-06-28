@@ -48,6 +48,7 @@ function chat(event, name) {
     event.preventDefault();
 
     let usersOnline;
+    let myId;
 
     let loginInput = document.querySelector('.login-input');
     const userName = name ? name : loginInput.value;
@@ -76,7 +77,7 @@ function chat(event, name) {
 
     function addUser(user) {
         const sendInvite = debounse((event) => {
-            ws.send(JSON.stringify({type: 'sendInvite', id: user.id, from: userName}));
+            ws.send(JSON.stringify({type: 'invite', fromId: myId, toId: user.id, fromName: userName}));
             event.target.innerHTML = 'Отправлено!';
             setTimeout(() => event.target.innerHTML = 'Пригласить в чат', 30000);
         }, 30000); 
@@ -105,6 +106,7 @@ function chat(event, name) {
         }
 
         const filterList = usersOnline.filter(user => user.name.indexOf(event.target.value) !== -1);
+
         if (filterList) {
             document.querySelectorAll('.user').forEach(li => li.remove());
             filterList.forEach(addUser);
@@ -112,7 +114,7 @@ function chat(event, name) {
         else return;
     }
 
-    function showNotification(sentence, isInvite, fromWhomId) {
+    function showNotification(sentence, isInvite, fromId) {
         const notification = createNode('div', 'notification');
         notification.insertAdjacentHTML('afterbegin', '<h3>Новое уведомление!</h3>');
         const info = createNode('p', 'info', sentence);
@@ -121,8 +123,8 @@ function chat(event, name) {
     
         if (isInvite) {
             const options = createNode('div', 'options');
-            const sayOk = () => ws.send(JSON.stringify({ type: 'responseToInvitation', response: 'ok', toId: fromWhomId, receiverName: userName }));
-            const sayNo = () => ws.send(JSON.stringify({ type: 'responseToInvitation', response: 'no', toId: fromWhomId, receiverName: userName }));
+            const sayOk = () => ws.send(JSON.stringify({typeForServer: 'collocutorId', type: 'responseToInvitation', response: 'ok', fromId: myId, toId: fromId, fromName: userName }));
+            const sayNo = () => ws.send(JSON.stringify({ type: 'responseToInvitation', response: 'no', toId: fromId, fromName: userName }));
             const okButton = createNode('button', 'ok-button', 'Согласиться', 'click', sayOk, 'click', hideNotification);
             const noButton = createNode('button', 'no-button', 'Отказаться', 'click', sayNo, 'click', hideNotification);
             multiAppend(options, okButton, noButton);
@@ -136,17 +138,19 @@ function chat(event, name) {
         }
     }
 
-    const ws = new WebSocket('wss://one-dialoag-chat.herokuapp.com/');
+    const ws = new WebSocket('ws://localhost/');
 
-    ws.onopen = () => ws.send(JSON.stringify({type: 'userName', name: userName}));
+    ws.onopen = () => ws.send(JSON.stringify({typeForServer: 'userName', name: userName}));
 
     ws.onmessage = message => {
         const data = JSON.parse(message.data);
+        console.log(data);
         
         switch(data.type) {
             case 'usersList': 
                 usersOnline = data.names;
                 showOnlineUsers(usersOnline);
+                if (!myId) myId = data.ownId;
                 break;
             
             case 'invite':
@@ -160,7 +164,7 @@ function chat(event, name) {
             case  'responseToInvitation':
                 if (data.response === 'ok') {
                     dialogInterface(ws, data.fromName, userName);
-                    ws.send(JSON.stringify({type: 'begin', name: userName, id: data.id}));
+                    ws.send(JSON.stringify({typeForServer: 'collocutorId', type: 'invite', beginChat: true, name: userName, toId: data.fromId}));
                 } else if (data.response === 'no') showNotification(`Пользователь ${data.fromName} отклонил ваше приглашение в чат.`);
                 else showNotification(`Пользователь ${data.fromName} уже находится в переписке с другим человеком.`);
                 break;
@@ -186,7 +190,7 @@ function dialogInterface(ws, name, thisUserName) {
     const sendMessage = (event) => {
         event.preventDefault();
         if (input.value !== '') {
-            ws.send(JSON.stringify({ type: 'message', message: input.value }));
+            ws.send(JSON.stringify({typeForServer: 'userMessage', type: 'message', message: input.value }));
             messages.append(createNode('span', 'message', `Вы: ${input.value}`));
             input.value = '';
         }
@@ -211,7 +215,7 @@ function dialogInterface(ws, name, thisUserName) {
             messages.append(createNode('span', 'out', `Ваш собеседник ${nameInterlocutor} вышел из диалога.`));
             input.disabled = true;
         }
-        if (data.type === 'invite') ws.send(JSON.stringify({ type: 'responseToInvitation', response: 'inChat', toId: data.fromId, receiverName: thisUserName }));
-        if (data.type === 'responseToInvitation') ws.send(JSON.stringify({ type: 'responseToInvitation', response: 'inChat', toId: data.id, receiverName: thisUserName}));
+        if (data.type === 'invite') ws.send(JSON.stringify({ type: 'responseToInvitation', response: 'inChat', toId: data.fromId, fromName: thisUserName }));
+        if (data.type === 'responseToInvitation') ws.send(JSON.stringify({ type: 'responseToInvitation', response: 'inChat', toId: data.id, fromName: thisUserName}));
     };
 }

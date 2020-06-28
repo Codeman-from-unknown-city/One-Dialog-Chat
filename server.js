@@ -61,7 +61,7 @@ function sendUpdateUsersList() {
         const usersCopy = users.slice();
         usersCopy.splice(getUserIndex(usersCopy, user.socket), 1);
         const withoutSockets = usersCopy.map(user => ({name: user.name, id: user.id}));
-        user.socket.send(JSON.stringify({type: 'usersList', names: withoutSockets}));
+        user.socket.send(JSON.stringify({type: 'usersList', names: withoutSockets, ownId: user.id}));
     });
 }
 
@@ -69,59 +69,30 @@ function chatLogic(socket) {
     let collocutor;
     socket.on('message', jsonMessage => {
         const data = JSON.parse(jsonMessage);
-        switch(data.type) {
+
+        switch(data.typeForServer) {
             case 'userName':
                 users.push({name: data.name, socket, id: Date.now()});
                 sendUpdateUsersList();
                 break;
-
-            case 'sendInvite':
-                let senderId;
-                let recipientSocket;
-                users.forEach(user => {
-                    if (user.socket === socket) senderId = user.id;
-                    if (user.id === +data.id) recipientSocket = user.socket;
-                });
-                recipientSocket.send(JSON.stringify({type: 'invite', fromName: data.from, fromId: senderId}));
-                break;
-
-            case 'responseToInvitation':
+            case 'collocutorId':
                 users.forEach(user => {
                     if (user.id === data.toId) {
-                        if (data.response === 'ok') {
-                            user.socket.send(JSON.stringify({
-                                type: 'responseToInvitation',
-                                response: 'ok', 
-                                fromName: data.receiverName, 
-                                id: users[getUserIndex(users, socket)].id,
-                            }));
-                            collocutor = user;
-                        } else user.socket.send(JSON.stringify({
-                            type: 'responseToInvitation',
-                            response: data.response, 
-                            fromName: data.receiverName,
-                        })); 
+                        collocutor = user.socket;
+                        user.socket.send(jsonMessage);
                     }
                 });
                 break;
-
-            case 'begin':
-                users.forEach(user => {
-                    if (user.id === data.id) {
-                        collocutor = user;
-                        collocutor.socket.send(JSON.stringify({type: 'invite', name: data.name, beginChat: true}));
-                    }
-                });
+            case 'userMessage': 
+                collocutor.send(jsonMessage);
                 break;
-                
-            case 'message':
-                collocutor.socket.send(JSON.stringify({type: 'message', message: data.message,}));
-                break;
+            default: 
+                users.forEach(user => user.id === data.toId ? user.socket.send(jsonMessage) : null);
         }
-    });
+    });    
 
     socket.on('close', () => {
-        if (collocutor) collocutor.socket.send(JSON.stringify({type: 'out'}));
+        if (collocutor) collocutor.send(JSON.stringify({type: 'out'}));
         users.splice(getUserIndex(users, socket), 1);
         sendUpdateUsersList();
     });
