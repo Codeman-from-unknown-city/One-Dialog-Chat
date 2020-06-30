@@ -48,22 +48,11 @@ const ws = new WebSocket.Server({
 
 ws.on('connection', chatLogic);
 
-const users = [];
+const users = new Map();
+const usersForCli = {};
 
-function getUserIndex(arr, socket) {
-    let userIndex;
-    arr.forEach((user, index) => {if (user.socket === socket) userIndex = index});
-    return userIndex;
-}
-
-function sendUpdateUsersList() {
-    users.forEach(user => {
-        const usersCopy = users.slice();
-        usersCopy.splice(getUserIndex(usersCopy, user.socket), 1);
-        const withoutSockets = usersCopy.map(user => ({name: user.name, id: user.id}));
-        user.socket.send(JSON.stringify({type: 'usersList', names: withoutSockets, ownId: user.id}));
-    });
-}
+const createId = () => 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,(c,r)=>('x'==c?(r=Math.random()*16|0):(r&0x3|0x8)).toString(16));
+const sendUpdateUsersList = () => users.forEach(userSocket => userSocket.send(JSON.stringify({type: 'usersList', users: usersForCli})));
 
 function chatLogic(socket) {
     let collocutor;
@@ -72,28 +61,35 @@ function chatLogic(socket) {
 
         switch(data.typeForServer) {
             case 'userName':
-                users.push({name: data.name, socket, id: Date.now()});
+                const id = createId();
+                socket.send(JSON.stringify({type: 'id', id}));
+                users.set(id, socket);
+                usersForCli[`${id}`] = data.name;
                 sendUpdateUsersList();
                 break;
+
             case 'collocutorId':
-                users.forEach(user => {
-                    if (user.id === data.toId) {
-                        collocutor = user.socket;
-                        user.socket.send(jsonMessage);
-                    }
-                });
+                collocutor = users.get(data.toId);
+                collocutor.send(jsonMessage);
                 break;
+
             case 'userMessage': 
                 collocutor.send(jsonMessage);
                 break;
+
             default: 
-                users.forEach(user => user.id === data.toId ? user.socket.send(jsonMessage) : null);
+                users.get(data.toId).send(jsonMessage);
         }
     });    
 
     socket.on('close', () => {
         if (collocutor) collocutor.send(JSON.stringify({type: 'out'}));
-        users.splice(getUserIndex(users, socket), 1);
+        users.forEach((userSocket, id) => {
+            if (userSocket === socket) {
+                users.delete(id);
+                delete usersForCli[`${id}`];
+            }
+        });
         sendUpdateUsersList();
     });
 }
