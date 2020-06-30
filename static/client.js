@@ -71,32 +71,43 @@ function chat(event, name) {
     const usersListWrap = createNode('div', 'list-wrap');
     const anwsers = createNode('div', 'anwsers');
     anwsers.insertAdjacentHTML('afterbegin', '<h1>Ответы:</h1>');
+    const haventOnline = createNode('h1', null, 'Нет пользователей онлайн');
+    haventOnline.style.display = 'none';
+    const localWrap = createNode('div');
+    localWrap.style.display = 'none';
+    localWrap.insertAdjacentHTML('afterbegin', '<h1>Пользователи онлайн:</h1>');
+    const search = createNode('input', 'search', null, 'input', searchUsers);
+    search.setAttribute('placeholder', 'Напишите имя пользователя, которого ищете...');
     const usersList = createNode('ul', 'users-list');
-    usersListWrap.append(usersList);
+
+    multiAppend(localWrap, search, usersList);
+    multiAppend(usersListWrap, haventOnline, localWrap);
     multiAppend(APP, invites, usersListWrap, anwsers);
 
-    function addUser(user) {
+    function addUser(name, id) {
+        if (id === myId) return;
         const sendInvite = debounse((event) => {
-            ws.send(JSON.stringify({type: 'invite', fromId: myId, toId: user.id, fromName: userName}));
+            ws.send(JSON.stringify({type: 'invite', fromId: myId, toId: id, fromName: userName}));
             event.target.innerHTML = 'Отправлено!';
             setTimeout(() => event.target.innerHTML = 'Пригласить в чат', 30000);
         }, 30000); 
         const onlineUser = createNode('li', 'user');
-        const name = createNode('span', 'user-name', user.name);
+        const localUserName = createNode('span', 'user-name', name);
         const inviteBtn = createNode('button', 'invite-btn', 'Пригласить в чат', 'click', sendInvite);
-        multiAppend(onlineUser, name, inviteBtn);
+        multiAppend(onlineUser, localUserName, inviteBtn);
         usersList.append(onlineUser);
     }
 
     function showOnlineUsers(onlineUsers) {
         usersList.innerHTML = '';
-        if (onlineUsers.length) {
-            usersList.insertAdjacentHTML('afterbegin', '<h1>Пользователи онлайн:</h1>');
-            const search = createNode('input', 'search', null, 'input', searchUsers);
-            search.setAttribute('placeholder', 'Напишите имя пользователя, которого ищете...');
-            usersList.append(search);
-            onlineUsers.forEach(addUser);
-        } else usersList.insertAdjacentHTML('afterbegin', '<h1>Нет пользователей онлайн</h1>');
+        if (Object.keys(onlineUsers).length > 1) {
+            haventOnline.style.display = 'none';
+            for (let id in onlineUsers) addUser(onlineUsers[id], id);
+            localWrap.style.display = 'block';
+        } else {
+            localWrap.style.display = 'none';
+            haventOnline.style.display = 'block';
+        }
     }
 
     function searchUsers(event) {
@@ -147,10 +158,13 @@ function chat(event, name) {
         console.log(data);
         
         switch(data.type) {
-            case 'usersList': 
-                usersOnline = data.names;
+            case 'id': 
+                myId = data.id;
+                break;
+
+            case 'usersList':
+                usersOnline = data.users;
                 showOnlineUsers(usersOnline);
-                if (!myId) myId = data.ownId;
                 break;
             
             case 'invite':
