@@ -62,7 +62,7 @@ const server = http.createServer((req, res) => {
         const data = cache.get(url);
         if (data) {
             const fileExt = path.extname(url).substring(1);
-            const mimeType = MIME_TYPES[fileExt] ?? MIME_TYPES.txt;
+            const mimeType = MIME_TYPES[fileExt] || MIME_TYPES.txt;
             res.writeHead(200, 'OK', { 'Content-Type': mimeType });
             res.end(data);
         }
