@@ -65,6 +65,7 @@ const server = http.createServer((req, res) => {
             res.end(data);
         }
         else {
+            res.writeHead(404);
             res.end(createErrorPage('HTTP/1.1 404 Page Not Found'));
         }
     }
