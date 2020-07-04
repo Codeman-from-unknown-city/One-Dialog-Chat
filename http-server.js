@@ -4,7 +4,7 @@ const fs = require('fs');
 const fsPromises = fs.promises;
 const http = require('http');
 const path = require('path');
-const createErrorPage = require('./utils/createErrorTemplate').createErrorTemplate;
+const createErrorPage = require('./utils/createErrorTemplate');
 
 const PORT = process.env.PORT || 80;
 const STATIC_PATH = path.join(process.cwd(), './static');
@@ -60,7 +60,7 @@ const server = http.createServer((req, res) => {
         const data = cache.get(url);
         if (data) {
             const fileExt = path.extname(url).substring(1);
-            const mimeType = MIME_TYPES[fileExt] || MIME_TYPES.txt;
+            const mimeType = MIME_TYPES[fileExt] ?? MIME_TYPES.txt;
             res.writeHead(200, 'OK', { 'Content-Type': mimeType });
             res.end(data);
         }
@@ -76,4 +76,4 @@ server.on('clientError', (err, socket) => {
     socket.end(createErrorPage('HTTP/1.1 400 Bad Request'));
 });
 
-exports.server = server;
+module.exports = server;

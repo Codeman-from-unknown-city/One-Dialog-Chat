@@ -1,6 +1,6 @@
 'use strict';
 
-const httpServer = require('./http-server').server;
+const httpServer = require('./http-server');
 const WebSocket = require('ws');
 
 const users = new Map();

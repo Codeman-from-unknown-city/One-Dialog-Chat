@@ -1,7 +1,7 @@
-const head = require('./head').htmlPart;
-const style = require('./style').htmlPart;
+const head = require('./head');
+const style = require('./style');
 
-exports.createErrorTemplate = errMessage => `
+module.exports = errMessage => `
 <!DOCTYPE html>
 <html lang="en">
 ${head}

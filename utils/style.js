@@ -1,4 +1,4 @@
-exports.htmlPart = `
+module.exports = `
     <style>
         .err {
             margin-top: 40vh;
