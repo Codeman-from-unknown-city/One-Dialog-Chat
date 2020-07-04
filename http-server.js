@@ -4,7 +4,8 @@ const fs = require('fs');
 const fsPromises = fs.promises;
 const http = require('http');
 const path = require('path');
-const createErrorPage = require('./utils/createErrorTemplate');
+const minify = require('./utils/minify');
+const createErrorPage = require('./utils/templates/err/createErrorTemplate');
 
 const PORT = process.env.PORT || 80;
 const STATIC_PATH = path.join(process.cwd(), './static');
@@ -14,7 +15,8 @@ const cache = new Map();
 
 const cacheFile = async filePath => {
     let data;
-    if (path.extname(filePath).substring(1) === 'png') data = await fsPromises.readFile(filePath);
+    const fileExt = path.extname(filePath).substring(1);
+    if (fileExt === 'png') data = await fsPromises.readFile(filePath);
     else data = await fsPromises.readFile(filePath, 'UTF-8');
     const key = filePath.substring(STATIC_PATH_LENGTH);
     let correctKey = '/' + key.slice(1);
@@ -22,7 +24,7 @@ const cacheFile = async filePath => {
         const subStrInd = correctKey.indexOf('\\');
         correctKey = correctKey.slice(0, subStrInd) + '/' + correctKey.slice(subStrInd + 1);
     }
-    cache.set(correctKey, data);
+    cache.set(correctKey, minify(data, fileExt));
 };
 
 const cacheDirectory = async directoryPath => {

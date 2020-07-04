@@ -1,8 +1,8 @@
-module.exports = `
-    <style>
+const minify = require('../../minify.js');
+
+module.exports = minify(`
         .err {
             margin-top: 40vh;
             text-align: center;
         }
-    </style>
-`.replace(/\s+/g, '');
+`, 'css');

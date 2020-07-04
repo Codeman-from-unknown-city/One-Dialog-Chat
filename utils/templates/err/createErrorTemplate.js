@@ -1,15 +1,16 @@
+const minify = require('../../minify.js');
 const head = require('./head');
-const style = require('./style');
+const styles = require('./style');
 
-module.exports = errMessage => `
+module.exports = errMessage => minify(`
 <!DOCTYPE html>
 <html lang="en">
 ${head}
 <body>
-    ${style}
+    <style>${styles}</style>
     <div class="err">
         <h1>${errMessage}</h1>
     </div>
 </body>
 </html>
-`.replace(/\s+/g, ' ').replace(/> </g, '><').trim();
+`, 'html');
