@@ -1,18 +1,12 @@
+const head = require('./head').htmlPart;
+const style = require('./style').htmlPart;
+
 exports.createErrorTemplate = errMessage => `
 <!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <link rel="icon" href="./favicon.png" type="image/png">
-    <title>ODC</title>
-</head>
+<html lang="en">
+${head}
 <body>
-    <style>
-        .err {
-            margin-top: 40vh;
-            text-align: center;
-        }
-    </style>
+    ${style}
     <div class="err">
         <h1>${errMessage}</h1>
     </div>
