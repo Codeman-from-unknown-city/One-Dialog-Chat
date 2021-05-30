@@ -23,6 +23,6 @@
   },
   "homepage": "https://github.com/Codeman-from-unknown-city/One-Dialog-Chat#readme",
   "dependencies": {
-    "ws": "^7.3.0"
+    "ws": "^7.4.6"
   }
 }
